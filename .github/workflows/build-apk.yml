@@ -39,17 +39,15 @@ jobs:
             libtinfo5 libncurses5 lib32stdc++6 lib32z1 \
             cmake libffi-dev libssl-dev build-essential ccache
 
-      - name: Установить Buildozer (закреплённые стабильные версии)
-        # Последний официальный релиз python-for-android на PyPI — 2024.1.21
-        # (январь 2024). Всё, что новее существует только в нестабильной ветке
-        # разработки на GitHub. Версия p4a фиксируется ЗДЕСЬ (через pip) и
-        # больше нигде — buildozer.spec намеренно НЕ содержит p4a.branch,
-        # иначе buildozer вместо использования этой pip-версии заново
-        # склонирует p4a из git и мы получим два конфликтующих источника
-        # версии.
+      - name: Установить Buildozer
+        # Версия python-for-android фиксируется НЕ здесь, а в buildozer.spec
+        # через p4a.branch = v2024.01.21 (git-тег) — buildozer всё равно
+        # игнорирует то, что поставлено тут через pip, и либо клонирует
+        # версию из p4a.branch, либо (если его нет) тянет свою dev-версию.
+        # Поэтому здесь пинуем только сам buildozer и cython.
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "cython<3.1" "buildozer==1.5.0" "python-for-android==2024.1.21"
+          python -m pip install "cython<3.1" "buildozer==1.5.0"
 
       - name: Собрать APK
         working-directory: p2p_messenger
