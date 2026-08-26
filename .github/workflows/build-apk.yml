@@ -49,6 +49,20 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install "cython<3.1" "buildozer==1.5.0"
 
+      - name: Настроить JAVA_HOME на Java 17
+        # apt-get install openjdk-17-jdk кладёт JDK 17 на диск, но НЕ меняет
+        # JAVA_HOME — на раннере он по умолчанию указывает на Java 11
+        # (/usr/lib/jvm/temurin-11-jdk-amd64). Android Gradle Plugin требует
+        # Java 17+, поэтому сборка падала на шаге gradlew assembleDebug с
+        # ошибкой "Android Gradle plugin requires Java 17 to run. You are
+        # currently using Java 11." Явно переключаем JAVA_HOME на
+        # предустановленный на раннере Temurin 17 (тот же дистрибутив, что
+        # ставит apt-get openjdk-17-jdk) и добавляем его bin в PATH для всех
+        # последующих шагов джобы.
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+
       - name: Собрать APK
         working-directory: p2p_messenger
         run: buildozer -v android debug
