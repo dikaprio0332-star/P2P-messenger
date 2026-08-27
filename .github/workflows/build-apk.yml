@@ -13,7 +13,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Распаковать проект (p2p_messenger_ready.zip -> p2p_messenger/)
+      - name: Распаковать проект (p2p_messenger_ready.zip -> .)
+        # ВАЖНО: buildozer.spec, main.py, requirements.txt лежат в КОРНЕ
+        # zip-архива (не внутри подпапки p2p_messenger/ — там только сам
+        # Python-пакет). "-d ." кладёт их прямо в корень воркспейса, поэтому
+        # шаг сборки ниже запускается БЕЗ working-directory (см. коммент там).
         run: unzip -o p2p_messenger_ready.zip -d .
 
       - name: Настроить Python
@@ -64,11 +68,16 @@ jobs:
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
 
       - name: Собрать APK
-        working-directory: p2p_messenger
+        # БЕЗ working-directory: buildozer.spec лежит в корне воркспейса
+        # (см. коммент к шагу распаковки выше), а не в p2p_messenger/ —
+        # именно working-directory: p2p_messenger и был источником ошибки
+        # "No buildozer.spec found in the current directory. Abandon."
         run: buildozer -v android debug
 
       - name: Загрузить готовый APK
         uses: actions/upload-artifact@v4
         with:
           name: wire-p2p-apk
-          path: p2p_messenger/bin/*.apk  
+          # buildozer кладёт результат в ./bin относительно buildozer.spec,
+          # т.е. в корень воркспейса (см. коммент выше) — не p2p_messenger/bin.
+          path: bin/*.apk  
